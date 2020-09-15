@@ -1,0 +1,8 @@
+Compile By typing in order:
+1. gcc -o smallsh smallsh.c
+2. smallsh
+
+
+Due to thee way the grading script calls the command the : may be in the wrong place at the beginning
+However the correct results are still printed to the screen
+You can see that results of commands are printed to blank lines without : if you run my shell seperately

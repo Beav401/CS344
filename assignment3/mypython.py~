@@ -1,0 +1,16 @@
+import random
+import string
+
+
+
+def main():
+    mystring1 = ''.join([random.choice(string.ascii_lowercase) for n in range(10)])
+    print(mystring1)
+
+
+
+
+
+
+
+main()

@@ -1,0 +1,365 @@
+#!/bin/bash
+
+
+dims() {
+rows="0"	
+cols="0"
+	if [[ $# -eq 1 && -r $1 ]] #this checks to make sure there is only one argument passsed in and the file is readable
+		then
+		rows=$(wc -l < $1)	#calculates the number of lines in document which corresponds to the number of rows
+		cols=$(wc -w < $1)  #calculates number of total number in matrix
+		cols=$(( cols/rows ))	#divide number of numbers by ros to get cols
+	
+		echo "$rows $cols"
+
+		return 0	
+
+	
+	else
+	echo "incorrect input" >/dev/stderr  #bad input
+	return 1
+
+	fi 
+
+
+}
+
+
+
+#----------------------------------------------------------------
+#This is a helper function that is used in the functions below it
+#----------------------------------------------------------------
+
+
+list() {			#take in two args: matrix file, empty file
+	while read line
+	do 
+		for i in $line  #seperates all the numbers based on tabs or new lines
+		do 
+			echo $i >> $2
+	#		printf "$i\n" >> $2  #appends to temp file and makes a single col of numbers. Numbers are ordered from matrix left to right, top to bottom
+		done
+	done< $1
+	
+
+
+
+
+}
+
+
+
+transpose() {
+
+	if [[ $# -eq 1 && -r $1 ]] #this checks to make sure there is only one argument passsed in and the file is readable
+	then
+		
+		TMP1=./tempfile1 #creating new temp file
+		list $1 $TMP1 #sending to function that will list the matrix
+		increment="0"
+		num_in_row="0"
+                rows=$(wc -l < $1)
+                cols=$(wc -w < $1)
+                cols=$(( cols/rows ))
+
+	for ((j=0; j<cols;j++))  #this limits the program to print the right number of rows based on the original matrix's columns
+	do
+		while read line  #the list function lists out the numbers in a single column so this takes one number at a time
+		do
+			((increment++))   # this is how the program determines which number in the list its on
+			mod=$(( $increment % $cols )) # this calculates what row that number was in in original matrix
+			current_col=$(( $j + 1 )) # current_col is the column we are printing in to a row at that time
+			if [[ $current_col -eq $cols ]] 
+			then					#Last Row
+                                if [[ $mod -eq 0 ]]
+                                then
+                                        ((num_in_row++)) 	# keeps track of the number in the row so program knows when to add a newline char
+                                        if [[ $num_in_row -eq $rows ]]	#checks if end of row has been reached so new line can be added
+                                        then
+        					echo $line
+                                        else
+        					echo -n -e "$line\t" 
+                                        fi
+                                fi
+				
+			else					#Other rows
+				if [[ $mod -eq $current_col ]]
+				then
+					((num_in_row++))
+					if [[ $num_in_row -eq $rows ]]	#checks for end of row, so new line can be added
+					then
+						echo $line
+					else
+						echo -n -e "$line\t"
+					fi
+				fi
+			fi
+		done < $TMP1  	#inserting temp file to while loop
+		num_in_row="0"
+		increment="0"
+	done
+		rm $TMP1 #deleting temp file
+		return 0
+	fi
+        echo "incorrect input" >/dev/stderr #bad input
+        return 1
+
+
+}
+
+
+mean() {
+
+        if [[ $# -eq 1 && -r $1 ]] #this checks to make sure there is only one argument passsed in and the file is readable
+        then
+
+                TMP1=./tempfile1 #creating new temp file
+                list $1 $TMP1 #sending to function that will list the matrix
+
+                increment="0"	#initializing variables that are used to keep track of location in matrix
+		increment2="0"
+                current_col="0"
+		col_number="1"
+                rows=$(wc -l < $1)	#calculates row and cols for matrix
+                cols=$(wc -w < $1)
+                cols=$(( cols/rows ))
+		sum="0"
+
+        for ((j=0; j<cols;j++))  #this limits the program to print the right number of rows based on the original matrix's columns
+        do
+		sum="0"
+		((current_col++))
+                while read line  #the list function lists out the numbers in a single column so this takes one number at a time
+		do
+        	        ((increment++))   # this is how the program determines which number in the list its on
+			mod=$(( $increment % $cols )) # this calculates what column the number is from
+			if [[ $mod -eq 0 && $current_col -eq $cols ]]  #this checks if the number is from the last column
+			then
+				sum=$(( $sum + $line )) #adds up all numbers from the column
+				((increment2++))
+				if [[ $increment2 -eq $rows ]]
+				then
+					mean=$(( ($sum+($rows/2)*(($sum>0)*2-1)) / $rows ))  #caculates mean
+					echo $mean
+
+				fi
+
+			elif [[ $mod -eq $col_number ]]  #checks if number is from the column that is being averaged (can't be final row)
+			then
+				sum=$(( $sum + $line ))	
+				((increment2++))
+				if [[ $increment2 -eq $rows ]]
+				then
+					 mean=$(( ($sum+($rows/2)*(($sum>0)*2-1)) / $rows ))  #calculates mean
+					echo -n -e "$mean\t"		
+				fi
+			fi
+		done < $TMP1
+
+		((col_number++))
+		increment="0"      #reset increment as list will be read through again 
+		increment2="0"     #resets so a new column can be averaged
+
+	done
+		rm $TMP1   #removing temp file
+		return 0
+
+	fi
+        echo "incorrect input" >/dev/stderr #bad input
+        return 1
+	
+
+}
+
+
+
+add() {
+
+	if [[ $# -eq 2 && -r $1 && -r $2 ]] #this checks to make sure there is only 2 arguments passsed in and the files are readable
+        then	
+
+	TMP1=./tempfile1 #creating new temp file
+	TMP2=./tempfile2 #creating new temp file
+
+	list $1 $TMP1 #sending to function that will list the matrix
+	list $2 $TMP2 #sending to function that will list the matrix
+
+
+	increment="0"
+
+        rows2=$(wc -l < $2)	#calculates rows and cols for matrix 2
+        cols2=$(wc -w < $2)
+        cols2=$(( cols2/rows2 ))
+
+
+	rows=$(wc -l < $1)	#calculates rows and columns for matrix 1
+	cols=$(wc -w < $1)
+	cols=$(( cols/rows ))
+	
+	if [[ $rows -eq $rows2 && $cols -eq $cols2 ]]		#checks to make sure matrices are the same size
+	then 
+		while read line1 <&3 && read line2 <&4		#reads both files at same time, adding staight across
+		do
+			((increment++))
+			sum=$(( $line1 + $line2 ))		
+			if [[ $increment -eq cols ]]	#checks if matrix is at the end of a row and needs a new line
+			then
+				echo $sum
+				increment="0"
+			else				#otherwise prints with a tab
+				echo -n -e "$sum\t"
+			fi
+		
+		done 3<$TMP1 4<$TMP2
+
+		rm $TMP1   #removing temp files
+		rm $TMP2
+		return 0
+	fi
+	
+	echo "incorrect input" >/dev/stderr #bad input (wrong matrix dimensions)
+        return 1
+
+
+
+	fi
+        echo "incorrect input" >/dev/stderr #bad input arguments
+        return 1
+	
+}	
+
+
+
+multiply() {
+
+        if [[ $# -eq 2 && -r $1 && -r $2 ]] #this checks to make sure there is only 2 arguments passsed in and the files are readable
+        then
+
+        rows2=$(wc -l < $2)	#calculates row and cols for matrix 2
+        cols2=$(wc -w < $2)
+        cols2=$(( cols2/rows2 ))
+
+        rows=$(wc -l < $1)	#calculated row and cols for matrix 1
+        cols=$(wc -w < $1)
+        cols=$(( cols/rows ))
+
+	if [[ $cols -eq $rows2 ]]	#checks that the matrices follow multiplication dimension rules
+	then
+
+        	TMP1=./tempfile1 #creating new temp file
+	        TMP2=./tempfile2 #creating new temp file
+
+        	list $1 $TMP1 #sending to function that will list the matrix
+        	list $2 $TMP2 #sending to function that will list the matrix
+
+	increment="0"
+	increment2="0"
+	increment_rows="0"
+	increment_cols="0"	
+
+	TMP3=./tempfile3 #creating new temp file
+	TMP4=./tempfile4 #creating new temp file
+
+	for ((i=0; i<rows; i++))
+	do
+		((increment_rows++))
+		for ((j=0; j<cols2; j++))
+		do
+		((increment_cols++))
+			while read line1	#This loop will take matrix 1 and print into a list with each row being added for the number of cols in matrix 2
+			do
+			((increment++))
+
+			lower_bd=$(( (0 - $cols)  + ($cols * $increment_rows ) + 1))
+			upper_bd=$(( 0 + ($cols * $increment_rows )))
+
+			if [[ $increment -ge $lower_bd && $increment -le $upper_bd ]]	#checks if number is part of correct row
+			then
+				echo $line1 >> $TMP3		#If so it is added to TMP3
+				
+			fi	
+			done <$TMP1		
+			increment="0"
+
+
+			while read line2	#This loop manages printing the second matrix to TMP4. each column is printed and then that is repeated for the number of rows in matrix1
+			do
+			((increment++))
+			mod=$(( $increment % cols2 ))
+			if [[ $mod -eq $increment_cols ]]	#checks if it is part of the column
+			then
+				echo $line2 >> $TMP4
+			elif [[ $mod -eq 0 && $increment_cols -eq cols2 ]]  #special case for number that are at the bottom of a column
+			then
+				echo $line2 >> $TMP4
+			fi
+
+			done <$TMP2
+			increment="0"
+		done
+		increment_cols="0"
+	done
+
+	position="0"
+	sum="0"
+	current_col="1"
+	while read line3 <&3 && read line4 <&4  #reads in both files at the same time (files have been sorted so taht we can just multiply directly accros
+	do
+		((position++))
+		product=$(( $line3 * $line4 ))
+		sum=$(( $sum + $product ))
+		if [[ $position -eq $cols && $current_col -ne $cols2 ]]		#checks if we have have finished the dot product
+		then
+			echo -n -e "$sum\t" 	#prints with tab
+			position="0"		#resets position and sum, so new dot product can be calculated
+			sum="0"
+			((current_col++))       #moves to next dot product
+		elif [[ $position -eq $cols && $current_col -eq $cols2 ]]	#Checks if we have finished dot product & we are at teh end of a row
+		then 
+			echo $sum		#prints with new line
+			position="0"		#resets vals
+			sum="0"	
+			current_col="1"		
+		fi
+		
+	done 3<$TMP3 4<$TMP4
+
+	rm $TMP1   #removing temp files
+	rm $TMP2
+	rm $TMP3
+	rm $TMP4
+	return 0
+
+
+
+
+
+
+
+	fi
+        echo "incorrect input" >/dev/stderr #bad input for wrong dimensions
+        return 1
+
+        fi
+        echo "incorrect input" >/dev/stderr #bad input for too many or too few arguments
+        return 1
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+$1 "${@:2}"

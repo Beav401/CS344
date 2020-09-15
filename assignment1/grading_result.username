@@ -1,0 +1,76 @@
+Dims with 2 arguments should throw error (1pt):
++ Passed!
+Add with 0 arguments should throw error (1pt):
++ Passed!
+Multiply mismatched matrices should throw error (5pt):
++ Passed!
+Adding mismatched matrices should throw error (4pt):
+- Returned 0
+- stdout is non-empty
+- stderr is empty
+Transposing undreadable file should throw error (2pt):
++ Passed!
+Dims on nonexistent file should throw error (1pt):
++ Passed!
+badcommand should throw error (1pt):
++ Passed!
+Piping m1 (5x6) into dims (3pt):
+- Returned 1
+- dimensions output is incorrect
+- stderr is non-empty
+Piping m2 (6x7) into dims (3pt):
+- Returned 1
+- dimensions output is incorrect
+- stderr is non-empty
+Piping m3 (3x8) into dims (3pt):
+- Returned 1
+- dimensions output is incorrect
+- stderr is non-empty
+Passing m4 (8x5) to dims on stdin (3pt):
++ Passed!
+Passing m1 (5x6) to dims on stdin (3pt):
++ Passed!
+Passing m2 (6x7) to dims on stdin (3pt):
++ Passed!
+Transposing hardcoded matrix (10pt):
++ Passed!
+Transpose involution test on m3 (5pt):
++ Passed!
+Transpose involution test on m4 (5pt):
++ Passed!
+Transpose involution test on m5 (5pt):
++ Passed!
+Mean on hardcoded matrix (15pt):
++ Passed!
+Mean on 5x10 zero matrix (2pt):
++ Passed!
+Mean on 5x10 all ones matrix (5pt):
++ Passed!
+Mean on 10x10 identity matrix (5pt):
++ Passed!
+0 + 0 == 0? (2pt):
+- Output result does not match known result
+X + 0 == X? (5pt):
+- Output result does not match known result
+0 + X == X? (5pt):
+- Output result does not match known result
+A + B == B + A? (1pt):
++ Passed!
+(harcoded) A + B == C? (15pt):
+- Output result does not match known result
+I * M == M? (5pt):
+- Returned 127
+- Output result does not match known result
+- stderr is non-empty
+M * I == M? (5pt):
+- Returned 127
+- Output result does not match known result
+- stderr is non-empty
+0 * M == 0? (5pt):
+- Returned 127
+- Output result does not match known result
+- stderr is non-empty
+(hardcoded) A * B == C? (20pt):
+- Returned 127
+- Output result does not match known result
+- stderr is non-empty
